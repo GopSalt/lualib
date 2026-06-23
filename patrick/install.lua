@@ -1,7 +1,7 @@
 -- Patrick Star Crafting Installer
 local repoURL = "https://raw.githubusercontent.com/GopSalt/lualib/main/"
 local filesToDownload = {
-    {url = repoURL .. "patrick/startup.lua", path = "startup.lua"}
+    {url = repoURL .. "patrick/startup.lua", path = "craft.lua"}
 }
 
 print("=== Patrick Star Installer ===")
@@ -23,7 +23,9 @@ end
 
 if success then
     print("\nInstallation Complete!")
-    print("Restart the turtle or run 'startup' to begin.")
+    print("Starting craft.lua...")
+    sleep(1)
+    shell.run("craft.lua")
 else
     print("\nInstallation failed!")
 end
