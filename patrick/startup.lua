@@ -1,9 +1,9 @@
--- Автоматизация крафта Звезды Патрика для ComputerCraft (ATM10)
--- Скрипт управляет Черепашкой, которая раскладывает бетон в Механические сборщики.
+-- Patrick Star Crafting Automation for ComputerCraft (ATM10)
+-- Script controls Turtle that places concrete into Mechanical Crafters.
 
--- Матрица сборки 9x9 (1 - розовый бетон, 2 - пурпурный, 3 - роз. сухой, 4 - пурп. сухой, 5 - зеленый, 6 - зел. сухой, 7 - лаймовый)
+-- 9x9 Crafting Matrix (1: Pink Concrete, 2: Magenta Concrete, 3: Pink Powder, 4: Magenta Powder, 5: Green Concrete, 6: Green Powder, 7: Lime Concrete)
 local patrick_star = {
-    {0, 0, 0, 0, 1, 0, 0, 0, 0}, -- y = 1 (Верхний ряд)
+    {0, 0, 0, 0, 1, 0, 0, 0, 0}, -- y = 1 (Top row)
     {0, 0, 0, 1, 3, 2, 0, 0, 0}, -- y = 2
     {1, 1, 1, 4, 3, 2, 1, 1, 1}, -- y = 3
     {2, 3, 4, 3, 4, 4, 4, 3, 2}, -- y = 4
@@ -11,50 +11,50 @@ local patrick_star = {
     {0, 0, 6, 5, 5, 5, 6, 0, 0}, -- y = 6
     {0, 6, 7, 6, 5, 6, 7, 6, 0}, -- y = 7
     {1, 6, 5, 5, 0, 5, 5, 6, 1}, -- y = 8
-    {2, 2, 2, 0, 0, 0, 2, 2, 2}  -- y = 9 (Нижний ряд)
+    {2, 2, 2, 0, 0, 0, 2, 2, 2}  -- y = 9 (Bottom row)
 }
 
--- Имена предметов в ATM10 для автоматической сортировки
+-- Item registry names in ATM10 for auto-sorting
 local target_names = {
-    [1] = "minecraft:pink_concrete",          -- Слот 1: 11 шт.
-    [2] = "minecraft:magenta_concrete",       -- Слот 2: 13 шт.
-    [3] = "minecraft:pink_concrete_powder",   -- Слот 3: 5 шт.
-    [4] = "minecraft:magenta_concrete_powder",-- Слот 4: 8 шт.
-    [5] = "minecraft:green_concrete",         -- Слот 5: 8 шт.
-    [6] = "minecraft:green_concrete_powder",  -- Слот 6: 8 шт.
-    [7] = "minecraft:lime_concrete"           -- Слот 7: 2 шт.
+    [1] = "minecraft:pink_concrete",          -- Slot 1: 11 pcs
+    [2] = "minecraft:magenta_concrete",       -- Slot 2: 13 pcs
+    [3] = "minecraft:pink_concrete_powder",   -- Slot 3: 5 pcs
+    [4] = "minecraft:magenta_concrete_powder",-- Slot 4: 8 pcs
+    [5] = "minecraft:green_concrete",         -- Slot 5: 8 pcs
+    [6] = "minecraft:green_concrete_powder",  -- Slot 6: 8 pcs
+    [7] = "minecraft:lime_concrete"           -- Slot 7: 2 pcs
 }
 
--- Вспомогательные функции безопасного движения с обработкой препятствий
+-- Helper functions for safe movement with collision handling
 local function safe_forward()
     while not turtle.forward() do
-        print("Движение заблокировано! Ожидание...")
+        print("Movement blocked! Waiting...")
         sleep(1)
     end
 end
 
 local function safe_back()
     while not turtle.back() do
-        print("Движение назад заблокировано! Ожидание...")
+        print("Movement back blocked! Waiting...")
         sleep(1)
     end
 end
 
 local function safe_up()
     while not turtle.up() do
-        print("Подъем заблокирован! Ожидание...")
+        print("Ascent blocked! Waiting...")
         sleep(1)
     end
 end
 
 local function safe_down()
     while not turtle.down() do
-        print("Спуск заблокирован! Ожидание...")
+        print("Descent blocked! Waiting...")
         sleep(1)
     end
 end
 
--- Функция проверки содержимого сундука слева от черепашки
+-- Function to check chest contents to the left of the turtle
 local function get_chest_item_count()
     local chest = peripheral.wrap("left")
     if not chest then
@@ -75,7 +75,7 @@ local function get_chest_item_count()
     return total, slots
 end
 
--- Очистка слотов 1-15 обратно в сундук в случае сбоя или перед забором (сундук слева)
+-- Clear slots 1-15 back into the chest on failure or before sucking (left chest)
 local function empty_inventory_to_chest()
     turtle.turnLeft()
     for i = 1, 15 do
@@ -88,7 +88,7 @@ local function empty_inventory_to_chest()
     turtle.turnRight()
 end
 
--- Забор ресурсов из сундука (сундук слева)
+-- Collect resources from chest (left chest)
 local function collect_resources()
     empty_inventory_to_chest()
     
@@ -99,7 +99,7 @@ local function collect_resources()
     while total < 55 do
         turtle.select(slot)
         if turtle.suck() then
-            -- Пересчитываем сколько всего забрали в слоты 1-15
+            -- Count total items sucked into slots 1-15
             total = 0
             for i = 1, 15 do
                 total = total + turtle.getItemCount(i)
@@ -116,13 +116,13 @@ local function collect_resources()
     turtle.turnRight()
 end
 
--- Сортировка инвентаря черепашки по целевым слотам (1-7)
+-- Sort turtle inventory into target slots (1-7)
 local function sort_inventory()
     for t = 1, 7 do
         local target_name = target_names[t]
         local found_slot = nil
         
-        -- Ищем, в каком слоте лежит нужный предмет
+        -- Search for slot containing target item
         for s = 1, 16 do
             local detail = turtle.getItemDetail(s)
             if detail and detail.name == target_name then
@@ -133,7 +133,7 @@ local function sort_inventory()
         
         if found_slot then
             if found_slot ~= t then
-                -- Если целевой слот занят, временно перемещаем его содержимое в свободный слот (8-15)
+                -- If target slot is occupied, temporarily move to empty slot (8-15)
                 if turtle.getItemCount(t) > 0 then
                     local moved = false
                     for temp = 8, 15 do
@@ -145,30 +145,30 @@ local function sort_inventory()
                         end
                     end
                     if not moved then
-                        error("Ошибка сортировки: нет свободных временных слотов!")
+                        error("Sort error: no free temp slots!")
                     end
                 end
-                -- Переносим найденный стек в правильный целевой слот
+                -- Move found stack to target slot
                 turtle.select(found_slot)
                 turtle.transferTo(t)
             end
         else
-            error("Отсутствует необходимый ресурс: " .. target_name)
+            error("Missing required resource: " .. target_name)
         end
     end
     turtle.select(1)
 end
 
--- Алгоритм выкладки блоков по матрице
+-- Matrix block placement algorithm
 local function perform_craft()
-    -- Делаем два шага вперед к плоскости сборщиков
+    -- Move 2 steps forward to the crafter grid
     safe_forward()
     safe_forward()
     
-    -- Идем зигзагом по колонкам (x от 1 до 9)
+    -- Zigzag columns (x from 1 to 9)
     for x = 1, 9 do
         if x % 2 == 1 then
-            -- Нечетная колонка: двигаемся снизу вверх (y от 9 до 1)
+            -- Odd column: move bottom-to-top (y from 9 to 1)
             for y = 9, 1, -1 do
                 local slot = patrick_star[y][x]
                 if slot and slot > 0 then
@@ -180,7 +180,7 @@ local function perform_craft()
                 end
             end
         else
-            -- Четная колонка: двигаемся сверху вниз (y от 1 до 9)
+            -- Even column: move top-to-bottom (y from 1 to 9)
             for y = 1, 9 do
                 local slot = patrick_star[y][x]
                 if slot and slot > 0 then
@@ -193,7 +193,7 @@ local function perform_craft()
             end
         end
         
-        -- Если не дошли до конца, переходим на следующую колонку (сдвиг вправо)
+        -- Switch to next column if not done (shift right)
         if x < 9 then
             turtle.turnRight()
             safe_forward()
@@ -201,54 +201,54 @@ local function perform_craft()
         end
     end
     
-    -- Возвращение на базу:
-    -- Сейчас черепашка на (y=1, x=9), смотрит на стену (Север).
+    -- Return to base:
+    -- Turtle is at (y=1, x=9), facing crafter wall (North).
     
-    -- 1. Сдаем назад на 2 блока
+    -- 1. Back up 2 blocks
     safe_back()
     safe_back()
     
-    -- 2. Спускаемся вниз на уровень y=9 (8 блоков вниз)
+    -- 2. Descend to y=9 level (8 blocks down)
     for i = 1, 8 do
         safe_down()
     end
     
-    -- 3. Летим влево к колонке x=1 (8 блоков влево)
+    -- 3. Move left to column x=1 (8 blocks left)
     turtle.turnLeft()
     for i = 1, 8 do
         safe_forward()
     end
     turtle.turnRight()
     
-    -- Черепашка вернулась в начальную точку, ровно над сундуком снабжения
+    -- Turtle returned to start position, right next to supply chest
 end
 
--- Главный цикл программы
+-- Main program loop
 while true do
     term.clear()
     term.setCursorPos(1, 1)
-    print("=== Автокрафт Звезды Патрика ===")
+    print("=== Patrick Star Auto-Crafter ===")
     
-    -- Проверка топлива (требуется ~100 единиц движения на один крафт)
+    -- Check fuel (~100 moves needed per craft)
     local fuel = turtle.getFuelLevel()
     if fuel == "unlimited" then
-        print("Топливо: Безлимитное")
+        print("Fuel: Unlimited")
     else
-        print("Топливо: " .. fuel .. " / 150+ рекомендовано")
+        print("Fuel: " .. fuel .. " / 150+ recommended")
         if fuel < 150 then
-            print("Низкий уровень топлива! Пробую заправить из слота 16...")
+            print("Low fuel! Trying to refuel from slot 16...")
             turtle.select(16)
             if turtle.refuel(1) then
-                print("Успешная дозаправка! Новое значение: " .. turtle.getFuelLevel())
+                print("Refuel success! New level: " .. turtle.getFuelLevel())
             else
-                print("ВНИМАНИЕ: Положите уголь/ведро лавы в слот 16!")
+                print("WARNING: Put fuel in slot 16!")
             end
         end
     end
     
-    print("Статус: Ожидание 55 блоков в сундуке...")
+    print("Status: Waiting for 55 blocks in chest...")
     
-    -- Ждем, пока в сундуке под черепашкой не наберется ровно 55 блоков в 7 стаках
+    -- Wait for 55 blocks in 7 stacks in left chest
     local ready = false
     while not ready do
         local total, slots = get_chest_item_count()
@@ -257,25 +257,25 @@ while true do
         else
             term.setCursorPos(1, 6)
             term.clearLine()
-            write("Сундук: " .. total .. "/55 блоков (" .. slots .. "/7 слотов)")
+            write("Chest: " .. total .. "/55 blocks (" .. slots .. "/7 slots)")
             sleep(1)
         end
     end
     
-    print("\n[!] Ресурсы обнаружены! Забираю...")
+    print("\n[!] Resources found! Collecting...")
     collect_resources()
     
-    print("[-] Сортировка инвентаря...")
+    print("[-] Sorting inventory...")
     local ok, err = pcall(sort_inventory)
     if not ok then
-        print("[Ошибка] Сортировка не удалась: " .. tostring(err))
-        print("Возвращаю ресурсы в сундук...")
+        print("[Error] Sorting failed: " .. tostring(err))
+        print("Returning resources to chest...")
         empty_inventory_to_chest()
         sleep(5)
     else
-        print("[+] Запуск алгоритма выкладки...")
+        print("[+] Starting block placement...")
         perform_craft()
-        print("[Успех] Крафт завершен! Ожидаю следующий заказ...")
+        print("[Success] Craft finished! Waiting for next order...")
         sleep(5)
     end
 end
