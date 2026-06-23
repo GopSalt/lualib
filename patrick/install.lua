@@ -1,7 +1,7 @@
--- Patrick Star Crafting Installer & Auto-Updater
+-- Patrick Star Crafting Installer
 local repoURL = "https://raw.githubusercontent.com/GopSalt/lualib/main/"
 local filesToDownload = {
-    {url = repoURL .. "patrick/startup.lua", path = "craft.lua"}
+    {url = repoURL .. "patrick/startup.lua", path = "startup.lua"}
 }
 
 print("=== Patrick Star Installer ===")
@@ -23,14 +23,7 @@ end
 
 if success then
     print("\nInstallation Complete!")
+    print("Restart the turtle or run 'startup' to begin.")
 else
-    print("\nUpdate failed! Attempting to run local copy...")
-end
-
-if fs.exists("craft.lua") then
-    print("Starting craft.lua...")
-    sleep(1)
-    shell.run("craft.lua")
-else
-    print("ERROR: craft.lua not found!")
+    print("\nInstallation failed!")
 end
