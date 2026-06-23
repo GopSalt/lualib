@@ -1,0 +1,10 @@
+# Pastebin draft and ID files
+*.pb
+*.pastebin
+*.pb.lua
+*.paste
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
