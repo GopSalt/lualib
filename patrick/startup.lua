@@ -54,9 +54,9 @@ local function safe_down()
     end
 end
 
--- Функция проверки содержимого сундука под черепашкой
+-- Функция проверки содержимого сундука слева от черепашки
 local function get_chest_item_count()
-    local chest = peripheral.wrap("bottom")
+    local chest = peripheral.wrap("left")
     if not chest then
         return 0, 0
     end
@@ -75,27 +75,30 @@ local function get_chest_item_count()
     return total, slots
 end
 
--- Очистка слотов 1-15 обратно в сундук в случае сбоя или перед забором
+-- Очистка слотов 1-15 обратно в сундук в случае сбоя или перед забором (сундук слева)
 local function empty_inventory_to_chest()
+    turtle.turnLeft()
     for i = 1, 15 do
         if turtle.getItemCount(i) > 0 then
             turtle.select(i)
-            turtle.dropDown()
+            turtle.drop()
         end
     end
     turtle.select(1)
+    turtle.turnRight()
 end
 
--- Забор ресурсов из сундука
+-- Забор ресурсов из сундука (сундук слева)
 local function collect_resources()
     empty_inventory_to_chest()
     
+    turtle.turnLeft()
     local total = 0
     local slot = 1
     
     while total < 55 do
         turtle.select(slot)
-        if turtle.suckDown() then
+        if turtle.suck() then
             -- Пересчитываем сколько всего забрали в слоты 1-15
             total = 0
             for i = 1, 15 do
@@ -110,6 +113,7 @@ local function collect_resources()
         end
     end
     turtle.select(1)
+    turtle.turnRight()
 end
 
 -- Сортировка инвентаря черепашки по целевым слотам (1-7)
